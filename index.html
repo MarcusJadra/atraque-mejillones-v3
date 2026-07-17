@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Atraque Mejillones</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0B1E2D">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<style>
+  :root{
+    --navy:#0B1E2D; --navy-2:#132B3D; --navy-3:#0E2333; --steel:#2C5F7C;
+    --amber:#E8A33D; --green:#5FBF8A; --fog:#E8ECEF; --slate:#7A8B99; --line: rgba(232,236,239,0.08);
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    background:var(--navy); color:var(--fog);
+    font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    overflow:hidden;
+  }
+  #app{position:relative; width:100%; height:100vh; height:100dvh; overflow:hidden;}
+  .screen{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    opacity:0; pointer-events:none; transition:opacity .25s ease;
+    overflow-y:auto;
+  }
+  .screen.active{opacity:1; pointer-events:auto;}
+
+  /* ============ HOME ============ */
+  #screen-home{justify-content:center; align-items:center; overflow:hidden;}
+  .home-bg{position:absolute; inset:0; overflow:hidden;}
+  .horizon{position:absolute; left:0; right:0; top:58%; height:1px; background:rgba(232,236,239,0.1);}
+  .water{position:absolute; left:0; right:0; bottom:0; top:58%; background:linear-gradient(180deg, rgba(44,95,124,0.18) 0%, rgba(11,30,45,0) 60%);}
+  .ripple{position:absolute; left:-20%; width:140%; height:2px; background:rgba(232,236,239,0.06); border-radius:50%;}
+  .ripple.r1{top:66%; animation:drift 7s ease-in-out infinite;}
+  .ripple.r2{top:76%; animation:drift 9s ease-in-out infinite reverse;}
+  @keyframes drift{0%,100%{transform:translateX(0); opacity:.6;} 50%{transform:translateX(14px); opacity:1;}}
+  .ship{position:absolute; top:56%; left:-140px; width:34vw; max-width:180px; opacity:.5; animation:sail 18s linear infinite;}
+  @keyframes sail{0%{left:-40vw;} 100%{left:120vw;}}
+  .home-content{position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; padding:24px;}
+  .logo-circle{width:96px; height:96px; border-radius:50%; border:1.5px solid rgba(232,163,61,0.35); background:rgba(11,30,45,0.55); display:flex; align-items:center; justify-content:center; margin-bottom:22px;}
+  .logo-circle svg{width:52px; height:52px;}
+  .brand{font-size:24px; font-weight:700; letter-spacing:-0.01em;}
+  .brand .accent{color:var(--amber);}
+  .tagline{font-size:11px; color:var(--slate); letter-spacing:0.08em; text-transform:uppercase; margin-top:6px;}
+  .btn-entrar{
+    margin-top:44px; background:var(--amber); color:#1a1206; font-weight:700; font-size:14px;
+    letter-spacing:0.04em; padding:14px 52px; border-radius:28px; border:none;
+    box-shadow:0 8px 24px rgba(232,163,61,0.25); cursor:pointer;
+  }
+  .btn-entrar:active{transform:scale(0.97);}
+  .home-footnote{position:absolute; bottom:28px; left:0; right:0; z-index:2; font-size:9px; color:var(--slate); letter-spacing:0.03em; text-align:center; line-height:1.6;}
+
+  /* ============ LIST ============ */
+  #screen-list{padding:16px 14px 8px;}
+  .lhead{padding:6px 4px 12px; border-bottom:1px solid var(--line); margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;}
+  .eyebrow{font-size:10px; letter-spacing:0.1em; color:var(--steel); text-transform:uppercase;}
+  .lh1{font-weight:700; font-size:18px; margin-top:2px;}
+  .updated{font-size:10px; color:var(--slate); margin-top:4px;}
+  .legend{display:flex; gap:12px; font-size:10px; color:var(--slate); padding:2px 4px 14px;}
+  .legend b{color:var(--fog);}
+  .cards{flex:1;}
+  .card{
+    background:var(--navy-2); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; margin-bottom:10px; position:relative; cursor:pointer;
+    transition:transform .12s ease;
+  }
+  .card:active{transform:scale(0.985);}
+  .card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; background:var(--amber);}
+  .card.active::before{background:var(--green);}
+  .crow{display:flex; justify-content:space-between; align-items:flex-start;}
+  .cvessel{font-weight:700; font-size:15px;}
+  .csite{font-size:11px; color:var(--slate); margin-top:2px;}
+  .cbadge{font-size:9px; letter-spacing:0.05em; color:var(--amber); border:1px solid rgba(232,163,61,0.35); border-radius:10px; padding:3px 8px; white-space:nowrap;}
+  .cbadge.active{color:var(--green); border-color:rgba(95,191,138,0.4);}
+  .cstrip{display:flex; gap:3px; margin-top:10px;}
+  .cseg{flex:1; height:5px; border-radius:3px; background:rgba(232,236,239,0.08);}
+  .cseg.done{background:var(--green);}
+  .cseg.now{background:var(--amber);}
+  .cstrip-labels{display:flex; gap:3px; margin-top:3px;}
+  .cstrip-labels span{flex:1; text-align:center; font-size:8px; letter-spacing:0.02em; color:var(--slate);}
+  .cstrip-labels span.now{color:var(--amber); font-weight:700;}
+  .cmeta{display:flex; justify-content:space-between; align-items:flex-end; margin-top:10px;}
+  .cdl{font-size:9px; color:var(--slate); text-transform:uppercase; letter-spacing:0.04em;}
+  .cdv{font-size:12px; margin-top:2px;}
+  .cnum{font-size:18px; font-weight:700; color:var(--fog);}
+  .cnum .now{color:var(--amber);}
+  .clbl{font-size:9px; color:var(--slate); text-transform:uppercase;}
+  .empty-state{text-align:center; padding:60px 20px; color:var(--slate); font-size:13px;}
+  .foot1{font-size:9px; color:var(--slate); text-align:center; margin-top:6px;}
+  .foot2{font-size:9px; color:var(--amber); text-align:center; margin:4px 0 16px; opacity:.85;}
+
+  /* ============ DETAIL ============ */
+  #screen-detail{padding:14px 16px 24px;}
+  .back{font-size:13px; color:var(--slate); cursor:pointer; padding:6px 0; width:fit-content;}
+  .dhero{padding:14px 2px 16px; border-bottom:1px solid var(--line); margin-bottom:6px;}
+  .dvessel{font-weight:700; font-size:20px;}
+  .dbadge{display:inline-block; margin-top:8px; font-size:10px; color:var(--green); border:1px solid rgba(95,191,138,0.4); border-radius:12px; padding:3px 10px;}
+  .dbadge.proj{color:var(--amber); border-color:rgba(232,163,61,0.4);}
+  .dsec{padding:14px 2px; border-bottom:1px solid var(--line);}
+  .dsec:last-child{border-bottom:none;}
+  .dsec-title{font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--steel); margin-bottom:10px;}
+  .drow{display:flex; justify-content:space-between; font-size:13px; padding:6px 0;}
+  .drow .k{color:var(--slate);}
+  .turno-item{display:flex; align-items:center; gap:10px; padding:8px 0;}
+  .dot{width:9px; height:9px; border-radius:50%; background:rgba(232,236,239,0.15); flex-shrink:0;}
+  .dot.done{background:var(--green);}
+  .dot.now{background:var(--amber); box-shadow:0 0 0 4px rgba(232,163,61,0.2);}
+  .tline{flex:1;}
+  .tline .t{font-weight:700; font-size:13px;}
+  .tline .t.now-t{color:var(--amber);}
+  .tline .d{font-size:11px; color:var(--slate); margin-top:1px;}
+  .ttag{font-size:9px; padding:2px 8px; border-radius:10px; white-space:nowrap;}
+  .ttag.done{color:var(--green); border:1px solid rgba(95,191,138,0.35);}
+  .ttag.now{color:var(--amber); border:1px solid rgba(232,163,61,0.4);}
+  .ttag.pending{color:var(--slate); border:1px solid var(--line);}
+  .obs{font-size:12px; line-height:1.5; background:var(--navy-2); border-radius:8px; padding:12px;}
+
+  ::-webkit-scrollbar{width:0; height:0;}
+
+  /* --- Tab bar --- */
+  .tabbar{
+    position:absolute; left:0; right:0; bottom:0; z-index:10;
+    display:flex; border-top:1px solid var(--line); background:var(--navy-3);
+  }
+  .tab{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;
+    padding:10px 0 12px; font-size:9px; letter-spacing:0.03em; color:var(--slate); cursor:pointer;
+  }
+  .tab.active{color:var(--amber);}
+  .tab svg{width:20px; height:20px;}
+  #screen-home ~ .tabbar, .screen.active#screen-home ~ .tabbar { display:none; }
+  .content-scroll{flex:1; overflow-y:auto; padding:16px 14px 76px;}
+
+  .weather-card{
+    background:linear-gradient(160deg, var(--navy-2) 0%, var(--navy-3) 100%);
+    border:1px solid var(--line); border-radius:16px;
+    padding:20px; margin-bottom:16px;
+  }
+  .weather-top{display:flex; justify-content:space-between; align-items:center;}
+  .weather-icon{width:52px; height:52px; flex-shrink:0;}
+  .temp{font-size:44px; font-weight:700; line-height:1; letter-spacing:-0.02em;}
+  .temp span{font-size:20px; color:var(--slate); font-weight:400;}
+  .wcond{font-size:11px; color:var(--slate); margin-top:6px; text-transform:uppercase; letter-spacing:0.04em;}
+  .weather-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:20px;}
+  .wstat{background:rgba(232,236,239,0.04); border-radius:10px; padding:12px 8px; text-align:center;}
+  .wstat svg{width:20px; height:20px; margin-bottom:6px; color:var(--amber);}
+  .wstat .v{font-size:15px; font-weight:700;}
+  .wstat .l{font-size:8.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.03em; margin-top:3px;}
+  .weather-detail{margin-top:16px; padding-top:14px; border-top:1px solid var(--line); font-size:11px; color:var(--slate); line-height:1.6;}
+  .weather-detail b{color:var(--fog); font-weight:600;}
+
+  .alert-card{
+    border-radius:16px; padding:18px; margin-bottom:12px; position:relative; overflow:hidden;
+    border:1px solid var(--line); background:linear-gradient(160deg, var(--navy-2) 0%, var(--navy-3) 100%);
+  }
+  .alert-card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px;}
+  .alert-card.normal::before{background:var(--green);}
+  .alert-card.aviso::before{background:var(--amber);}
+  .alert-top{display:flex; justify-content:space-between; align-items:flex-start;}
+  .alert-icon{width:32px; height:32px; flex-shrink:0;}
+  .alert-icon.normal{color:var(--green);}
+  .alert-icon.aviso{color:var(--amber);}
+  .alert-badge{font-size:9.5px; letter-spacing:0.06em; padding:4px 11px; border-radius:10px; font-weight:700;}
+  .alert-badge.normal{color:var(--green); background:rgba(95,191,138,0.12); border:1px solid rgba(95,191,138,0.4);}
+  .alert-badge.aviso{color:var(--amber); background:rgba(232,163,61,0.12); border:1px solid rgba(232,163,61,0.4);}
+  .alert-title{font-size:15px; font-weight:700; margin-top:12px;}
+  .alert-desc{font-size:11.5px; color:var(--slate); margin-top:5px; line-height:1.55;}
+  .alert-meta{display:flex; gap:18px; margin-top:14px; padding-top:12px; border-top:1px solid var(--line);}
+  .alert-meta div{font-size:11px;}
+  .alert-meta .l{font-size:8.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:2px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- PANTALLA 1: INICIO -->
+  <div class="screen active" id="screen-home">
+    <div class="home-bg">
+      <div class="horizon"></div>
+      <div class="water"></div>
+      <div class="ripple r1"></div>
+      <div class="ripple r2"></div>
+      <svg class="ship" viewBox="0 0 200 70" fill="none">
+        <path d="M10 46 L190 46 L172 62 L28 62 Z" fill="#2C5F7C"/>
+        <rect x="40" y="30" width="10" height="16" fill="#2C5F7C"/>
+        <rect x="58" y="20" width="10" height="26" fill="#2C5F7C"/>
+        <rect x="76" y="26" width="10" height="20" fill="#2C5F7C"/>
+        <rect x="100" y="14" width="16" height="32" fill="#2C5F7C"/>
+      </svg>
+    </div>
+    <div class="home-content">
+      <div class="logo-circle">
+        <svg viewBox="0 0 64 64">
+          <circle cx="32" cy="13" r="6" fill="none" stroke="#E8A33D" stroke-width="2.5"/>
+          <line x1="32" y1="19" x2="32" y2="50" stroke="#E8A33D" stroke-width="2.5"/>
+          <path d="M14 36 Q32 58 50 36" fill="none" stroke="#E8A33D" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="18" y1="25" x2="46" y2="25" stroke="#E8A33D" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="brand">Atraque <span class="accent">Mejillones</span></div>
+      <div class="tagline">Planificación de turnos</div>
+      <button class="btn-entrar" onclick="irAPantalla('list')">ENTRAR</button>
+    </div>
+    <div class="home-footnote">Fuente: Heyport · Puerto Angamos<br>No es una app oficial del puerto<br>App creada por Marcus Miller</div>
+  </div>
+
+  <!-- PANTALLA 2: LISTA -->
+  <div class="screen" id="screen-list">
+    <div class="lhead">
+      <div>
+        <div class="eyebrow">Puerto Angamos · Mejillones</div>
+        <div class="lh1">Buques en planificación</div>
+        <div class="updated" id="updated-text">Cargando...</div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><b>T1</b> Primer turno</span>
+      <span><b>T2</b> Segundo turno</span>
+      <span><b>T3</b> Tercer turno</span>
+    </div>
+    <div class="cards" id="cards-container">
+      <div class="empty-state">Cargando planificación…</div>
+    </div>
+    <div class="foot1">Verde = turno cumplido · Ámbar = turno actual</div>
+    <div class="foot2">Información referencial · consulta la planificación oficial</div>
+  </div>
+
+  <!-- PANTALLA 3: DETALLE -->
+  <div class="screen" id="screen-detail">
+    <div class="back" onclick="irAPantalla('list')">‹ Volver</div>
+    <div id="detail-content"></div>
+  </div>
+
+  <!-- PANTALLA 4: CLIMA -->
+  <div class="screen" id="screen-clima">
+    <div class="content-scroll">
+      <div class="lhead">
+        <div>
+          <div class="eyebrow">Puerto Angamos · Mejillones</div>
+          <div class="lh1">Condiciones actuales</div>
+          <div class="updated" id="clima-updated">Cargando...</div>
+        </div>
+      </div>
+      <div id="clima-container"><div class="empty-state">Cargando…</div></div>
+      <div class="foot1">Fuente: Servicio Meteorológico de la Armada de Chile (DIRECTEMAR)</div>
+    </div>
+  </div>
+
+  <!-- PANTALLA 5: MAREJADAS -->
+  <div class="screen" id="screen-marejadas">
+    <div class="content-scroll">
+      <div class="lhead">
+        <div>
+          <div class="eyebrow">Puerto Angamos · Mejillones</div>
+          <div class="lh1">Avisos de marejada</div>
+          <div class="updated" id="marejadas-updated">Cargando...</div>
+        </div>
+      </div>
+      <div id="marejadas-container"><div class="empty-state">Cargando…</div></div>
+      <div class="foot1">Fuente: Servicio Meteorológico de la Armada de Chile (DIRECTEMAR)</div>
+    </div>
+  </div>
+
+  <!-- BARRA DE NAVEGACION -->
+  <div class="tabbar" id="tabbar">
+    <div class="tab active" onclick="irAPantalla('list')" id="tab-buques">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 17h18M5 17l1-5h12l1 5M9 12V8a3 3 0 013-3 3 3 0 013 3v4" stroke="currentColor" stroke-width="1.6"/></svg>
+      Buques
+    </div>
+    <div class="tab" onclick="irAPantalla('clima')" id="tab-clima">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.6"/><line x1="12" y1="2.5" x2="12" y2="4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Clima
+    </div>
+    <div class="tab" onclick="irAPantalla('marejadas')" id="tab-marejadas">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0M3 19c2-2 4-2 6 0s4 2 6 0 4-2 6 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Marejadas
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SHEET_ID = '1XqLYWcuALu0owR8yHsRWOrNctr1C_9_Zd5Qkzz6vPWc';
+
+let VESSELS = [];
+let TURNOS = [];
+
+function goTo(screen){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  const tabbar = document.getElementById('tabbar');
+  tabbar.style.display = (screen === 'home') ? 'none' : 'flex';
+}
+
+function irAPantalla(pantalla){
+  goTo(pantalla);
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const map = {list: 'tab-buques', clima: 'tab-clima', marejadas: 'tab-marejadas'};
+  const tabEl = document.getElementById(map[pantalla]);
+  if (tabEl) tabEl.classList.add('active');
+}
+
+function parsearViento(viento){
+  const m = (viento || '').match(/([A-Z\/]{1,6})\s+(\d+)\/(\d+)\s*KT/i);
+  if (!m) return { rango: viento || '—', direccion: '' };
+  return { rango: `${m[2]}-${m[3]} kt`, direccion: m[1] };
+}
+
+const ICONO_SOL = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.6"/><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"/><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"/><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"/></g></svg>';
+const ICONO_VIENTO = '<svg viewBox="0 0 24 24" fill="none"><path d="M3 8h11a2.5 2.5 0 100-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3 12h15a2.5 2.5 0 110 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3 16h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+const ICONO_OLA = '<svg viewBox="0 0 24 24" fill="none"><path d="M2 14c1.6-1.6 3.2-1.6 4.8 0s3.2 1.6 4.8 0 3.2-1.6 4.8 0 3.2 1.6 4.8 0M2 18c1.6-1.6 3.2-1.6 4.8 0s3.2 1.6 4.8 0 3.2-1.6 4.8 0 3.2 1.6 4.8 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+const ICONO_OJO = '<svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.6"/></svg>';
+const ICONO_ALERTA = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3l10 18H2L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="12" y1="10" x2="12" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="17" r="0.9" fill="currentColor"/></svg>';
+const ICONO_CHECK = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+async function cargarClima(){
+  try {
+    const rows = await fetchSheet('Clima');
+    const r = rows[0];
+    const tempMin = celdaTexto(r[0]);
+    const tempMax = celdaTexto(r[1]);
+    const viento = parsearViento(celdaTexto(r[2]));
+    const visibilidad = celdaTexto(r[3]) || '—';
+    const marDesc = celdaTexto(r[4]) || '';
+    const olaMin = celdaTexto(r[5]);
+    const olaMax = celdaTexto(r[6]);
+
+    document.getElementById('clima-container').innerHTML = `
+      <div class="weather-card">
+        <div class="weather-top">
+          <div>
+            <div class="temp">${tempMin}<span>–${tempMax}°C</span></div>
+            <div class="wcond">Rango del día</div>
+          </div>
+          <div class="weather-icon" style="color:var(--amber)">${ICONO_SOL}</div>
+        </div>
+        <div class="weather-grid">
+          <div class="wstat">${ICONO_VIENTO}<div class="v">${viento.rango}</div><div class="l">Viento ${viento.direccion}</div></div>
+          <div class="wstat">${ICONO_OLA}<div class="v">${olaMin}–${olaMax} m</div><div class="l">Oleaje</div></div>
+          <div class="wstat">${ICONO_OJO}<div class="v">${visibilidad}</div><div class="l">Visibilidad</div></div>
+        </div>
+        <div class="weather-detail"><b>Estado del mar:</b> ${marDesc.toLowerCase()}</div>
+      </div>`;
+    document.getElementById('clima-updated').textContent = 'Boletín oficial · ' + (celdaTexto(r[7]) || '—');
+  } catch(err) {
+    document.getElementById('clima-container').innerHTML = '<div class="empty-state">No se pudo cargar el clima.</div>';
+  }
+}
+
+async function cargarMarejadas(){
+  try {
+    const rows = await fetchSheet('Marejadas');
+    const container = document.getElementById('marejadas-container');
+    if (rows.length === 0 || !celdaTexto(rows[0][0]) || celdaTexto(rows[0][0]).indexOf('Sin avisos') !== -1) {
+      container.innerHTML = `
+        <div class="alert-card normal">
+          <div class="alert-top">
+            <div class="alert-icon normal">${ICONO_CHECK}</div>
+            <div class="alert-badge normal">SIN AVISOS</div>
+          </div>
+          <div class="alert-title">Condiciones normales</div>
+          <div class="alert-desc">No hay avisos de marejada vigentes para Mejillones/Antofagasta en este momento.</div>
+        </div>`;
+    } else {
+      container.innerHTML = rows.map(r => `
+        <div class="alert-card aviso">
+          <div class="alert-top">
+            <div class="alert-icon aviso">${ICONO_ALERTA}</div>
+            <div class="alert-badge aviso">AVISO ACTIVO</div>
+          </div>
+          <div class="alert-title">${celdaTexto(r[1]) || 'Aviso de marejadas'}</div>
+          <div class="alert-desc">Zona: ${celdaTexto(r[0])}</div>
+          <div class="alert-meta"><div><div class="l">Emitido</div>${celdaTexto(r[2]) || '—'}</div></div>
+        </div>`).join('');
+    }
+    document.getElementById('marejadas-updated').textContent = 'Actualizado ' + (celdaTexto(rows[0][4]) || '—');
+  } catch(err) {
+    document.getElementById('marejadas-container').innerHTML = '<div class="empty-state">No se pudo cargar la información.</div>';
+  }
+}
+
+async function fetchSheet(sheetName){
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+  const res = await fetch(url);
+  const text = await res.text();
+  const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+  const data = JSON.parse(jsonStr);
+  // Devolvemos las celdas "crudas" (con v y f) en vez de aplanarlas,
+  // porque Google Sheets puede guardar las fechas como texto o como tipo fecha real,
+  // y necesitamos distinguirlos para no romper el parseo.
+  const rows = data.table.rows.map(r => r.c);
+  return rows;
+}
+
+function celdaTexto(c){
+  if (!c) return null;
+  return (c.f != null ? c.f : c.v);
+}
+
+function celdaNumero(c){
+  if (!c || c.v == null) return null;
+  return Number(c.v);
+}
+
+function celdaFecha(c){
+  if (!c || c.v == null) return null;
+  // Caso 1: Google Sheets guardo un tipo Fecha/Fecha-hora real.
+  // gviz devuelve el valor como texto "Date(2026,6,25,18,45,0)" (mes 0-indexado).
+  if (typeof c.v === 'string' && c.v.startsWith('Date(')) {
+    const nums = c.v.slice(5, -1).split(',').map(n => parseInt(n, 10));
+    const [y, mo, d, h = 0, mi = 0, s = 0] = nums;
+    return new Date(y, mo, d, h, mi, s);
+  }
+  // Caso 2: quedo guardado como texto plano "dd/mm/yyyy hh:mm" (lo mas comun en nuestro caso).
+  const str = celdaTexto(c);
+  if (!str) return null;
+  const m = String(str).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return new Date(parseInt(m[3]), parseInt(m[2]) - 1, parseInt(m[1]), parseInt(m[4]), parseInt(m[5]));
+}
+
+function fmtFecha(d){
+  if (!d) return '—';
+  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const pad = n => (n < 10 ? '0' : '') + n;
+  return `${dias[d.getDay()]} ${pad(d.getDate())}/${pad(d.getMonth()+1)} · ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// --- Calculo de estado EN VIVO, usando la hora real del dispositivo ---
+// No dependemos de que el script de Google haya corrido recientemente:
+// las fechas de atraque/zarpe/turnos son fijas, así que podemos calcular
+// "donde estamos ahora" en cualquier momento, al instante.
+
+function estadoLiveDeBuque(v, ahora){
+  ahora = ahora || new Date();
+  if (v.estadoSheet === 'Cancelado') return 'Cancelado';
+  if (!v.atraque || !v.zarpe) return v.estadoSheet;
+  if (ahora < v.atraque) return 'Proyectado';
+  if (ahora <= v.zarpe) return 'En puerto';
+  return 'Zarpado';
+}
+
+function turnoActualLive(turnosDelBuque, ahora){
+  ahora = ahora || new Date();
+  const actual = turnosDelBuque.find(t => t.inicio && t.fin && ahora >= t.inicio && ahora <= t.fin);
+  return actual ? actual.orden : null;
+}
+
+function estadoTurnoLive(inicio, fin, ahora){
+  ahora = ahora || new Date();
+  if (!inicio || !fin) return 'Pendiente';
+  if (ahora < inicio) return 'Pendiente';
+  if (ahora <= fin) return 'En curso';
+  return 'Cumplido';
+}
+
+async function cargarDatos(){
+  try {
+    const [hojaRows, turnosRows] = await Promise.all([
+      fetchSheet('Hoja 1'),
+      fetchSheet('Turnos')
+    ]);
+
+    VESSELS = hojaRows.filter(r => celdaTexto(r[0])).map(r => ({
+      buque: celdaTexto(r[0]), sitio: (celdaTexto(r[1]) || '').replace(/Berth/i, 'Sitio'),
+      atraque: celdaFecha(r[2]), zarpe: celdaFecha(r[3]),
+      estadoSheet: celdaTexto(r[4]), agencia: celdaTexto(r[5]), tipoCarga: celdaTexto(r[6]),
+      eslora: celdaNumero(r[7]), turnos: celdaNumero(r[8]) || 0
+    })).filter(v => {
+      const liveEstado = estadoLiveDeBuque(v);
+      return liveEstado !== 'Zarpado' && liveEstado !== 'Cancelado';
+    });
+
+    // Orden: En puerto primero, luego Proyectado; dentro de cada grupo, por fecha de atraque (mas cercana primero)
+    VESSELS.sort((a, b) => {
+      const order = {'En puerto': 0, 'Proyectado': 1};
+      const ea = estadoLiveDeBuque(a), eb = estadoLiveDeBuque(b);
+      const diffOrder = (order[ea] ?? 2) - (order[eb] ?? 2);
+      if (diffOrder !== 0) return diffOrder;
+      const ta = a.atraque ? a.atraque.getTime() : Infinity;
+      const tb = b.atraque ? b.atraque.getTime() : Infinity;
+      return ta - tb;
+    });
+
+    TURNOS = turnosRows.filter(r => celdaTexto(r[0])).map(r => ({
+      buque: celdaTexto(r[0]), orden: celdaNumero(r[1]),
+      nombre: celdaTexto(r[2]),
+      inicio: celdaFecha(r[3]), fin: celdaFecha(r[4])
+    }));
+
+    renderList();
+
+    const now = new Date();
+    const pad = n => (n < 10 ? '0' : '') + n;
+    document.getElementById('updated-text').textContent =
+      `Actualizado ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+  } catch(err) {
+    document.getElementById('cards-container').innerHTML =
+      '<div class="empty-state">No se pudo cargar la información.<br>Revisa tu conexión e intenta de nuevo.</div>';
+    console.error(err);
+  }
+}
+
+function nombreATx(nombre){
+  if (nombre === 'Primer Turno') return 'T1';
+  if (nombre === 'Segundo Turno') return 'T2';
+  if (nombre === 'Tercer Turno') return 'T3';
+  return '';
+}
+
+function segmentBar(turnoActual, total, turnosDelBuque){
+  const maxSegmentos = 8; // tope visual para no saturar la tarjeta
+  const totalMostrado = Math.min(total, maxSegmentos);
+  const escalado = !!(turnoActual && total > maxSegmentos);
+  let actualMostrado = turnoActual;
+  if (escalado){
+    // Escalamos proporcionalmente para que el segmento "actual" caiga
+    // en el lugar correcto dentro de los 8 segmentos visibles.
+    actualMostrado = Math.min(totalMostrado, Math.max(1, Math.round((turnoActual / total) * maxSegmentos)));
+  }
+
+  // Anclamos las etiquetas al turno REAL actual (el dato verdadero, no una
+  // aproximación por posición), para que el segmento ambar SIEMPRE diga
+  // el turno correcto, incluso cuando la barra esta "achicada".
+  let anclaNum = null;
+  if (turnoActual && turnosDelBuque) {
+    const real = turnosDelBuque.find(t => t.orden === turnoActual);
+    if (real) anclaNum = parseInt((nombreATx(real.nombre) || 'T1').slice(1), 10) || 1;
+  }
+  if (anclaNum === null) {
+    const primerTx = (turnosDelBuque && turnosDelBuque[0]) ? nombreATx(turnosDelBuque[0].nombre) : 'T1';
+    anclaNum = parseInt((primerTx || 'T1').slice(1), 10) || 1;
+  }
+
+  let bars = '<div class="cstrip">';
+  let labels = '<div class="cstrip-labels">';
+  for (let i = 1; i <= totalMostrado; i++){
+    let cls = '';
+    if (actualMostrado){
+      if (i < actualMostrado) cls = 'done';
+      else if (i === actualMostrado) cls = 'now';
+    }
+    bars += `<div class="cseg ${cls}"></div>`;
+
+    let label;
+    if (!escalado && turnosDelBuque && turnosDelBuque[i - 1]) {
+      label = nombreATx(turnosDelBuque[i - 1].nombre);
+    } else {
+      // El segmento "now" siempre usa el ancla real; los demas se calculan
+      // desplazandose desde ahi en ciclos de 3 (T1-T2-T3).
+      const offset = i - (actualMostrado || i);
+      const num = (((anclaNum - 1) + offset) % 3 + 3) % 3 + 1;
+      label = 'T' + num;
+    }
+    labels += `<span class="${cls === 'now' ? 'now' : ''}">${label}</span>`;
+  }
+  bars += '</div>';
+  labels += '</div>';
+  return bars + labels;
+}
+
+function renderList(){
+  const container = document.getElementById('cards-container');
+  if (VESSELS.length === 0){
+    container.innerHTML = '<div class="empty-state">No hay buques en puerto ni proyectados en este momento.</div>';
+    return;
+  }
+  const ahora = new Date();
+  container.innerHTML = VESSELS.map((v, idx) => {
+    const liveEstado = estadoLiveDeBuque(v, ahora);
+    const isActive = liveEstado === 'En puerto';
+    const turnosDelBuque = TURNOS.filter(t => t.buque === v.buque).sort((a,b) => a.orden - b.orden);
+    const turnoActual = isActive ? turnoActualLive(turnosDelBuque, ahora) : null;
+    const metaHtml = isActive && turnoActual
+      ? `<div class="cnum"><span class="now">${turnoActual}</span>/${v.turnos}</div><div class="clbl">turno actual</div>`
+      : `<div class="cnum">${v.turnos}</div><div class="clbl">turnos proyectados</div>`;
+    return `
+      <div class="card ${isActive ? 'active' : ''}" onclick="verDetalle(${idx})">
+        <div class="crow">
+          <div>
+            <div class="cvessel">${v.buque}</div>
+            <div class="csite">${v.sitio || ''}</div>
+          </div>
+          <div class="cbadge ${isActive ? 'active' : ''}">${liveEstado.toUpperCase()}</div>
+        </div>
+        ${segmentBar(turnoActual, v.turnos, turnosDelBuque)}
+        <div class="cmeta">
+          <div><div class="cdl">Atraque</div><div class="cdv">${fmtFecha(v.atraque)}</div></div>
+          <div style="text-align:right;">${metaHtml}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+let currentDetailIdx = null;
+
+function verDetalle(idx){
+  currentDetailIdx = idx;
+  renderDetalle(idx);
+  goTo('detail');
+}
+
+function renderDetalle(idx){
+  const v = VESSELS[idx];
+  const ahora = new Date();
+  const liveEstado = estadoLiveDeBuque(v, ahora);
+  const isActive = liveEstado === 'En puerto';
+  const turnosDelBuque = TURNOS.filter(t => t.buque === v.buque).sort((a,b) => a.orden - b.orden);
+  const turnoActual = isActive ? turnoActualLive(turnosDelBuque, ahora) : null;
+
+  let turnosHtml = '';
+  if (turnosDelBuque.length > 0){
+    turnosHtml = turnosDelBuque.map(t => {
+      const estadoTurno = estadoTurnoLive(t.inicio, t.fin, ahora);
+      let dotCls = 'pending', tagCls = 'pending', tagText = 'PENDIENTE';
+      if (estadoTurno === 'Cumplido'){ dotCls = 'done'; tagCls = 'done'; tagText = 'CUMPLIDO'; }
+      else if (estadoTurno === 'En curso'){ dotCls = 'now'; tagCls = 'now'; tagText = 'EN CURSO'; }
+      return `
+        <div class="turno-item">
+          <div class="dot ${dotCls}"></div>
+          <div class="tline">
+            <div class="t ${dotCls==='now'?'now-t':''}">${t.nombre}</div>
+            <div class="d">${fmtFecha(t.inicio)}</div>
+          </div>
+          <div class="ttag ${tagCls}">${tagText}</div>
+        </div>`;
+    }).join('');
+  } else {
+    turnosHtml = '<div style="color:var(--slate); font-size:12px;">Sin desglose de turnos disponible.</div>';
+  }
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="dhero">
+      <div class="dvessel">${v.buque}</div>
+      <div class="dbadge ${isActive ? '' : 'proj'}">${liveEstado.toUpperCase()}${isActive && turnoActual ? ' · TURNO ' + turnoActual + ' DE ' + v.turnos : ''}</div>
+    </div>
+    <div class="dsec">
+      <div class="dsec-title">Información de la nave</div>
+      <div class="drow"><span class="k">Agencia naviera</span><span>${v.agencia || '—'}</span></div>
+      <div class="drow"><span class="k">Tipo de carga</span><span>${v.tipoCarga || '—'}</span></div>
+      <div class="drow"><span class="k">Eslora</span><span>${v.eslora ? v.eslora + ' m' : '—'}</span></div>
+      <div class="drow"><span class="k">Sitio</span><span>${v.sitio || '—'}</span></div>
+      <div class="drow"><span class="k">Atraque</span><span>${fmtFecha(v.atraque)}</span></div>
+      <div class="drow"><span class="k">Zarpe estimado</span><span>${fmtFecha(v.zarpe)}</span></div>
+    </div>
+    <div class="dsec">
+      <div class="dsec-title">Turnos completos</div>
+      ${turnosHtml}
+    </div>
+  `;
+}
+
+cargarDatos();
+cargarClima();
+cargarMarejadas();
+setInterval(cargarDatos, 15 * 60 * 1000);
+setInterval(cargarClima, 15 * 60 * 1000);
+setInterval(cargarMarejadas, 15 * 60 * 1000);
+
+// Cada 1 minuto, sin pedir datos nuevos, volvemos a dibujar usando la hora actual,
+// para que el cambio de turno se note al toque, sin esperar el proximo refresco de datos.
+setInterval(() => {
+  if (VESSELS.length === 0) return;
+  renderList();
+  if (currentDetailIdx !== null && document.getElementById('screen-detail').classList.contains('active')) {
+    renderDetalle(currentDetailIdx);
+  }
+}, 60 * 1000);
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
