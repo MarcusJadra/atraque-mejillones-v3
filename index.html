@@ -354,6 +354,7 @@
 
       <div class="help-sec">
         <div class="help-sec-title">Símbología del clima</div>
+        <div class="help-item"><div class="tag">Temp. actual</div><div>Temperatura en vivo del momento, según servicio meteorológico. El mín/máx del día viene del boletín oficial de DIRECTEMAR.</div></div>
         <div class="help-item"><div class="tag">KT</div><div>Nudos, unidad de velocidad del viento usada en navegación. Se muestra junto a su equivalente en km/h (1 kt ≈ 1,852 km/h).</div></div>
         <div class="help-item"><div class="tag">Oleaje</div><div>Altura estimada de las olas, en metros.</div></div>
         <div class="help-item"><div class="tag">Visibilidad</div><div>Distancia horizontal visible en las condiciones actuales.</div></div>
@@ -416,6 +417,20 @@ const ICONO_OJO = '<svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-6 10-
 const ICONO_ALERTA = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3l10 18H2L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="12" y1="10" x2="12" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="17" r="0.9" fill="currentColor"/></svg>';
 const ICONO_CHECK = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+const LAT_MEJILLONES = -23.0995, LON_MEJILLONES = -70.4979;
+
+async function obtenerTemperaturaActual(){
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT_MEJILLONES}&longitude=${LON_MEJILLONES}&current=temperature_2m&timezone=auto`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const t = data?.current?.temperature_2m;
+    return (t == null) ? null : Math.round(t);
+  } catch(err) {
+    return null;
+  }
+}
+
 async function cargarClima(){
   try {
     const rows = await fetchSheet('Clima');
@@ -427,13 +442,20 @@ async function cargarClima(){
     const marDesc = celdaTexto(r[4]) || '';
     const olaMin = celdaTexto(r[5]);
     const olaMax = celdaTexto(r[6]);
+    const tempActual = await obtenerTemperaturaActual();
+
+    const tempTopHtml = (tempActual != null)
+      ? `<div class="temp">${tempActual}<span>°C</span></div><div class="wcond">Temperatura actual</div>`
+      : `<div class="temp">${tempMin}<span>–${tempMax}°C</span></div><div class="wcond">Rango del día</div>`;
+    const minMaxHtml = (tempActual != null)
+      ? `<br><b>Mín/Máx del día:</b> ${tempMin}–${tempMax}°C`
+      : '';
 
     document.getElementById('clima-container').innerHTML = `
       <div class="weather-card">
         <div class="weather-top">
           <div>
-            <div class="temp">${tempMin}<span>–${tempMax}°C</span></div>
-            <div class="wcond">Rango del día</div>
+            ${tempTopHtml}
           </div>
           <div class="weather-icon" style="color:var(--amber)">${ICONO_SOL}</div>
         </div>
@@ -442,7 +464,7 @@ async function cargarClima(){
           <div class="wstat">${ICONO_OLA}<div class="v">${olaMin}–${olaMax} m</div><div class="l">Oleaje</div></div>
           <div class="wstat">${ICONO_OJO}<div class="v">${visibilidad}</div><div class="l">Visibilidad</div></div>
         </div>
-        <div class="weather-detail"><b>Estado del mar:</b> ${marDesc.toLowerCase()}</div>
+        <div class="weather-detail"><b>Estado del mar:</b> ${marDesc.toLowerCase()}${minMaxHtml}</div>
       </div>`;
     document.getElementById('clima-updated').textContent = 'Boletín oficial · ' + (celdaTexto(r[7]) || '—');
   } catch(err) {
