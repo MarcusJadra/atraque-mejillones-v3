@@ -409,11 +409,15 @@ function deslizarPantalla(desdeId, haciaId, direction){
   const from = document.getElementById('screen-' + desdeId);
   const to = document.getElementById('screen-' + haciaId);
 
+  // La pantalla saliente desaparece al instante (sin fundido): su contenido
+  // nunca debe verse superpuesto con el de la pantalla entrante.
+  from.style.transition = 'none';
+  from.classList.remove('active');
+  from.style.transform = '';
+
   to.style.transition = 'none';
   to.classList.add('active');
   to.style.transform = `translateX(${direction * 100}%)`;
-  // la pantalla entrante siempre debe pintarse encima, sin importar el orden en el DOM
-  from.style.zIndex = '1';
   to.style.zIndex = '2';
 
   let limpiado = false;
@@ -424,21 +428,16 @@ function deslizarPantalla(desdeId, haciaId, direction){
   const limpiar = () => {
     if (limpiado) return;
     limpiado = true;
-    from.classList.remove('active');
-    from.style.transition = '';
-    from.style.transform = '';
-    from.style.zIndex = '';
     to.style.transition = '';
     to.style.transform = '';
     to.style.zIndex = '';
+    from.style.transition = '';
     to.removeEventListener('transitionend', onTransitionEnd);
     cambiandoPantalla = false;
   };
 
   setTimeout(() => {
-    from.style.transition = 'transform .28s ease';
     to.style.transition = 'transform .28s ease';
-    from.style.transform = `translateX(${-direction * 100}%)`;
     to.style.transform = 'translateX(0)';
     to.addEventListener('transitionend', onTransitionEnd);
     setTimeout(limpiar, 400); // respaldo por si transitionend no dispara
