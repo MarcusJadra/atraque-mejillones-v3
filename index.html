@@ -402,7 +402,10 @@ function cerrarAyuda(){
   document.getElementById('help-overlay').classList.remove('open');
 }
 
+let cambiandoPantalla = false;
+
 function deslizarPantalla(desdeId, haciaId, direction){
+  cambiandoPantalla = true;
   const from = document.getElementById('screen-' + desdeId);
   const to = document.getElementById('screen-' + haciaId);
 
@@ -411,6 +414,10 @@ function deslizarPantalla(desdeId, haciaId, direction){
   to.style.transform = `translateX(${direction * 100}%)`;
 
   let limpiado = false;
+  const onTransitionEnd = (e) => {
+    if (e.target !== to) return; // ignorar transiciones de hijos (cards, tabs, etc.) que burbujean
+    limpiar();
+  };
   const limpiar = () => {
     if (limpiado) return;
     limpiado = true;
@@ -419,7 +426,8 @@ function deslizarPantalla(desdeId, haciaId, direction){
     from.style.transform = '';
     to.style.transition = '';
     to.style.transform = '';
-    to.removeEventListener('transitionend', limpiar);
+    to.removeEventListener('transitionend', onTransitionEnd);
+    cambiandoPantalla = false;
   };
 
   setTimeout(() => {
@@ -427,7 +435,7 @@ function deslizarPantalla(desdeId, haciaId, direction){
     to.style.transition = 'transform .28s ease';
     from.style.transform = `translateX(${-direction * 100}%)`;
     to.style.transform = 'translateX(0)';
-    to.addEventListener('transitionend', limpiar);
+    to.addEventListener('transitionend', onTransitionEnd);
     setTimeout(limpiar, 400); // respaldo por si transitionend no dispara
   }, 20);
 
@@ -438,8 +446,11 @@ function deslizarPantalla(desdeId, haciaId, direction){
 function irAPantalla(pantalla){
   const idxNueva = TAB_ORDER.indexOf(pantalla);
   const idxActual = TAB_ORDER.indexOf(currentTab);
+  const esSlide = idxNueva !== -1 && idxActual !== -1 && idxNueva !== idxActual;
 
-  if (idxNueva !== -1 && idxActual !== -1 && idxNueva !== idxActual){
+  if (esSlide && cambiandoPantalla) return; // ignora toques/swipes mientras una transicion esta en curso
+
+  if (esSlide){
     deslizarPantalla(currentTab, pantalla, idxNueva > idxActual ? 1 : -1);
   } else {
     goTo(pantalla);
