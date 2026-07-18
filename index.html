@@ -24,7 +24,7 @@
   .screen{
     position:absolute; inset:0; display:flex; flex-direction:column;
     opacity:0; pointer-events:none; transition:opacity .25s ease;
-    overflow-y:auto; overscroll-behavior-x:none;
+    overflow-y:auto; overscroll-behavior-x:none; touch-action:pan-y;
   }
   .screen.active{opacity:1; pointer-events:auto;}
 
@@ -412,6 +412,9 @@ function deslizarPantalla(desdeId, haciaId, direction){
   to.style.transition = 'none';
   to.classList.add('active');
   to.style.transform = `translateX(${direction * 100}%)`;
+  // la pantalla entrante siempre debe pintarse encima, sin importar el orden en el DOM
+  from.style.zIndex = '1';
+  to.style.zIndex = '2';
 
   let limpiado = false;
   const onTransitionEnd = (e) => {
@@ -424,8 +427,10 @@ function deslizarPantalla(desdeId, haciaId, direction){
     from.classList.remove('active');
     from.style.transition = '';
     from.style.transform = '';
+    from.style.zIndex = '';
     to.style.transition = '';
     to.style.transform = '';
+    to.style.zIndex = '';
     to.removeEventListener('transitionend', onTransitionEnd);
     cambiandoPantalla = false;
   };
@@ -489,8 +494,14 @@ function manejarTouchEnd(e){
   }
 }
 
+function manejarTouchCancel(){
+  touchStartX = null;
+  touchStartY = null;
+}
+
 document.getElementById('app').addEventListener('touchstart', manejarTouchStart, {passive: true});
 document.getElementById('app').addEventListener('touchend', manejarTouchEnd, {passive: true});
+document.getElementById('app').addEventListener('touchcancel', manejarTouchCancel, {passive: true});
 
 function parsearViento(viento){
   const m = (viento || '').match(/([A-Z\/]{1,6})\s+(\d+)\/(\d+)\s*KT/i);
