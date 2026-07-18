@@ -148,6 +148,7 @@
   .wstat{background:rgba(232,236,239,0.04); border-radius:10px; padding:12px 8px; text-align:center;}
   .wstat svg{width:20px; height:20px; margin-bottom:6px; color:var(--amber);}
   .wstat .v{font-size:15px; font-weight:700;}
+  .wstat .v-sub{font-size:9.5px; color:var(--slate); margin-top:1px;}
   .wstat .l{font-size:8.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.03em; margin-top:3px;}
   .weather-detail{margin-top:16px; padding-top:14px; border-top:1px solid var(--line); font-size:11px; color:var(--slate); line-height:1.6;}
   .weather-detail b{color:var(--fog); font-weight:600;}
@@ -171,6 +172,47 @@
   .alert-meta{display:flex; gap:18px; margin-top:14px; padding-top:12px; border-top:1px solid var(--line);}
   .alert-meta div{font-size:11px;}
   .alert-meta .l{font-size:8.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:2px;}
+
+  /* --- Boton de ayuda --- */
+  .help-btn{
+    position:absolute; top:14px; right:14px; z-index:15;
+    width:30px; height:30px; border-radius:50%;
+    background:rgba(232,236,239,0.08); border:1px solid var(--line);
+    color:var(--fog); font-size:14px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .help-btn:active{transform:scale(0.94);}
+  #screen-home ~ .help-btn{display:none;}
+
+  .help-overlay{
+    position:absolute; inset:0; z-index:20;
+    background:rgba(11,30,45,0.88);
+    display:none; align-items:flex-end; justify-content:center;
+  }
+  .help-overlay.open{display:flex;}
+  .help-modal{
+    width:100%; max-height:84%; overflow-y:auto;
+    background:var(--navy-2); border:1px solid var(--line);
+    border-radius:18px 18px 0 0; padding:18px 18px 28px;
+  }
+  .help-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-bottom:14px; border-bottom:1px solid var(--line); margin-bottom:14px;
+  }
+  .help-title{font-size:16px; font-weight:700;}
+  .help-close{
+    width:28px; height:28px; border-radius:50%; flex-shrink:0;
+    background:rgba(232,236,239,0.08); display:flex; align-items:center;
+    justify-content:center; font-size:13px; color:var(--slate); cursor:pointer;
+  }
+  .help-sec{margin-bottom:18px;}
+  .help-sec:last-child{margin-bottom:0;}
+  .help-sec-title{font-size:10.5px; letter-spacing:0.07em; text-transform:uppercase; color:var(--steel); margin-bottom:9px; font-weight:700;}
+  .help-sec p{font-size:12.5px; line-height:1.6; color:var(--fog); margin-bottom:6px;}
+  .help-sec p:last-child{margin-bottom:0;}
+  .help-sec b{color:var(--amber);}
+  .help-item{display:flex; gap:10px; padding:6px 0; font-size:12.5px; line-height:1.5;}
+  .help-item .tag{flex-shrink:0; font-weight:700; color:var(--amber); min-width:60px;}
 </style>
 </head>
 <body>
@@ -280,6 +322,51 @@
     </div>
   </div>
 
+  <!-- BOTON Y PANEL DE AYUDA -->
+  <div class="help-btn" id="help-btn" onclick="abrirAyuda()">?</div>
+  <div class="help-overlay" id="help-overlay" onclick="cerrarAyuda()">
+    <div class="help-modal" onclick="event.stopPropagation()">
+      <div class="help-head">
+        <div class="help-title">Cómo funciona la app</div>
+        <div class="help-close" onclick="cerrarAyuda()">✕</div>
+      </div>
+
+      <div class="help-sec">
+        <div class="help-sec-title">Qué es esto</div>
+        <p>Muestra la planificación de atraque de buques en Puerto Angamos, Mejillones, a partir de datos de Heyport y DIRECTEMAR. Es información referencial: siempre confirma con la planificación oficial.</p>
+      </div>
+
+      <div class="help-sec">
+        <div class="help-sec-title">Estado del buque</div>
+        <div class="help-item"><div class="tag">PROYECTADO</div><div>El buque aún no atraca. Se muestra su fecha estimada de atraque.</div></div>
+        <div class="help-item"><div class="tag">EN PUERTO</div><div>El buque ya atracó y está operando. Se muestra el turno en curso.</div></div>
+        <p>Cuando el buque zarpa, desaparece automáticamente de la lista.</p>
+      </div>
+
+      <div class="help-sec">
+        <div class="help-sec-title">Turnos (T1, T2, T3...)</div>
+        <p>Cada buque tiene un número de <b>turnos proyectados</b> para completar su carga o descarga. La barra de progreso de cada tarjeta muestra en qué turno va:</p>
+        <div class="help-item"><div class="tag" style="color:var(--green)">Verde</div><div>Turno cumplido.</div></div>
+        <div class="help-item"><div class="tag">Ámbar</div><div>Turno actual, en curso.</div></div>
+        <div class="help-item"><div class="tag" style="color:var(--slate)">Gris</div><div>Turno pendiente.</div></div>
+        <p>Al entrar al detalle de un buque puedes ver la línea de tiempo completa con la hora de inicio de cada turno.</p>
+      </div>
+
+      <div class="help-sec">
+        <div class="help-sec-title">Símbología del clima</div>
+        <div class="help-item"><div class="tag">KT</div><div>Nudos, unidad de velocidad del viento usada en navegación. Se muestra junto a su equivalente en km/h (1 kt ≈ 1,852 km/h).</div></div>
+        <div class="help-item"><div class="tag">Oleaje</div><div>Altura estimada de las olas, en metros.</div></div>
+        <div class="help-item"><div class="tag">Visibilidad</div><div>Distancia horizontal visible en las condiciones actuales.</div></div>
+      </div>
+
+      <div class="help-sec">
+        <div class="help-sec-title">Marejadas</div>
+        <div class="help-item"><div class="tag">Sin avisos</div><div>No hay alertas de marejada vigentes para la zona.</div></div>
+        <div class="help-item"><div class="tag">Aviso activo</div><div>DIRECTEMAR emitió un aviso de marejada vigente. Revisa el detalle y la fuente oficial.</div></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -293,6 +380,17 @@ function goTo(screen){
   document.getElementById('screen-' + screen).classList.add('active');
   const tabbar = document.getElementById('tabbar');
   tabbar.style.display = (screen === 'home') ? 'none' : 'flex';
+  const helpBtn = document.getElementById('help-btn');
+  helpBtn.style.display = (screen === 'home') ? 'none' : 'flex';
+  if (screen === 'home') cerrarAyuda();
+}
+
+function abrirAyuda(){
+  document.getElementById('help-overlay').classList.add('open');
+}
+
+function cerrarAyuda(){
+  document.getElementById('help-overlay').classList.remove('open');
 }
 
 function irAPantalla(pantalla){
@@ -305,8 +403,10 @@ function irAPantalla(pantalla){
 
 function parsearViento(viento){
   const m = (viento || '').match(/([A-Z\/]{1,6})\s+(\d+)\/(\d+)\s*KT/i);
-  if (!m) return { rango: viento || '—', direccion: '' };
-  return { rango: `${m[2]}-${m[3]} kt`, direccion: m[1] };
+  if (!m) return { rango: viento || '—', rangoKm: '', direccion: '' };
+  const ktMin = parseInt(m[2], 10), ktMax = parseInt(m[3], 10);
+  const kmMin = Math.round(ktMin * 1.852), kmMax = Math.round(ktMax * 1.852);
+  return { rango: `${ktMin}-${ktMax} kt`, rangoKm: `${kmMin}-${kmMax} km/h`, direccion: m[1] };
 }
 
 const ICONO_SOL = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.6"/><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"/><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"/><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"/></g></svg>';
@@ -338,7 +438,7 @@ async function cargarClima(){
           <div class="weather-icon" style="color:var(--amber)">${ICONO_SOL}</div>
         </div>
         <div class="weather-grid">
-          <div class="wstat">${ICONO_VIENTO}<div class="v">${viento.rango}</div><div class="l">Viento ${viento.direccion}</div></div>
+          <div class="wstat">${ICONO_VIENTO}<div class="v">${viento.rango}</div><div class="v-sub">${viento.rangoKm}</div><div class="l">Viento ${viento.direccion}</div></div>
           <div class="wstat">${ICONO_OLA}<div class="v">${olaMin}–${olaMax} m</div><div class="l">Oleaje</div></div>
           <div class="wstat">${ICONO_OJO}<div class="v">${visibilidad}</div><div class="l">Visibilidad</div></div>
         </div>
