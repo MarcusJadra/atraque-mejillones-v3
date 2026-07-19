@@ -879,9 +879,9 @@ function renderDetalle(idx){
 cargarDatos();
 cargarClima();
 cargarMarejadas();
-setInterval(cargarDatos, 15 * 60 * 1000);
-setInterval(cargarClima, 15 * 60 * 1000);
-setInterval(cargarMarejadas, 15 * 60 * 1000);
+setInterval(cargarDatos, 5 * 60 * 1000);
+setInterval(cargarClima, 5 * 60 * 1000);
+setInterval(cargarMarejadas, 5 * 60 * 1000);
 
 // Cada 1 minuto, sin pedir datos nuevos, volvemos a dibujar usando la hora actual,
 // para que el cambio de turno se note al toque, sin esperar el proximo refresco de datos.
