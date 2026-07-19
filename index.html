@@ -71,7 +71,13 @@
   .card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; background:var(--amber);}
   .card.active::before{background:var(--green);}
   .crow{display:flex; justify-content:space-between; align-items:flex-start;}
+  .cvessel-row{display:flex; align-items:center; flex-wrap:wrap; gap:6px;}
   .cvessel{font-weight:700; font-size:15px;}
+  .remate-badge{
+    display:inline-block; font-size:8.5px; font-weight:700; letter-spacing:0.02em;
+    color:#F2664D; background:rgba(242,102,77,0.12); border:1px solid rgba(242,102,77,0.4);
+    border-radius:8px; padding:2px 7px; white-space:nowrap; text-transform:uppercase;
+  }
   .csite{font-size:11px; color:var(--slate); margin-top:2px;}
   .cbadge{font-size:9px; letter-spacing:0.05em; color:var(--amber); border:1px solid rgba(232,163,61,0.35); border-radius:10px; padding:3px 8px; white-space:nowrap;}
   .cbadge.active{color:var(--green); border-color:rgba(95,191,138,0.4);}
@@ -690,7 +696,8 @@ async function cargarDatos(){
       buque: celdaTexto(r[0]), sitio: (celdaTexto(r[1]) || '').replace(/Berth/i, 'Sitio'),
       atraque: celdaFecha(r[2]), zarpe: celdaFecha(r[3]),
       estadoSheet: celdaTexto(r[4]), agencia: celdaTexto(r[5]), tipoCarga: celdaTexto(r[6]),
-      eslora: celdaNumero(r[7]), turnos: celdaNumero(r[8]) || 0
+      eslora: celdaNumero(r[7]), turnos: celdaNumero(r[8]) || 0,
+      portcallId: celdaTexto(r[10])
     })).filter(v => {
       const liveEstado = estadoLiveDeBuque(v);
       return liveEstado !== 'Zarpado' && liveEstado !== 'Cancelado';
@@ -710,7 +717,8 @@ async function cargarDatos(){
     TURNOS = turnosRows.filter(r => celdaTexto(r[0])).map(r => ({
       buque: celdaTexto(r[0]), orden: celdaNumero(r[1]),
       nombre: celdaTexto(r[2]),
-      inicio: celdaFecha(r[3]), fin: celdaFecha(r[4])
+      inicio: celdaFecha(r[3]), fin: celdaFecha(r[4]),
+      portcallId: celdaTexto(r[6])
     }));
 
     renderList();
@@ -795,8 +803,10 @@ function renderList(){
   container.innerHTML = VESSELS.map((v, idx) => {
     const liveEstado = estadoLiveDeBuque(v, ahora);
     const isActive = liveEstado === 'En puerto';
-    const turnosDelBuque = TURNOS.filter(t => t.buque === v.buque).sort((a,b) => a.orden - b.orden);
+    const turnosDelBuque = TURNOS.filter(t => v.portcallId ? t.portcallId === v.portcallId : t.buque === v.buque).sort((a,b) => a.orden - b.orden);
     const turnoActual = isActive ? turnoActualLive(turnosDelBuque, ahora) : null;
+    const esUltimoTurno = isActive && !!turnoActual && turnoActual === v.turnos;
+    const remateHtml = esUltimoTurno ? `<span class="remate-badge">Posible Remate de Buque</span>` : '';
     const metaHtml = isActive && turnoActual
       ? `<div class="cnum"><span class="now">${turnoActual}</span>/${v.turnos}</div><div class="clbl">turno actual</div>`
       : `<div class="cnum">${v.turnos}</div><div class="clbl">turnos proyectados</div>`;
@@ -804,7 +814,10 @@ function renderList(){
       <div class="card ${isActive ? 'active' : ''}" onclick="verDetalle(${idx})">
         <div class="crow">
           <div>
-            <div class="cvessel">${v.buque}</div>
+            <div class="cvessel-row">
+              <span class="cvessel">${v.buque}</span>
+              ${remateHtml}
+            </div>
             <div class="csite">${v.sitio || ''}</div>
           </div>
           <div class="cbadge ${isActive ? 'active' : ''}">${liveEstado.toUpperCase()}</div>
