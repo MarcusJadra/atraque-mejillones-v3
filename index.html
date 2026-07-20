@@ -263,10 +263,35 @@
   .help-sec b{color:var(--amber);}
   .help-item{display:flex; gap:10px; padding:6px 0; font-size:12.5px; line-height:1.5;}
   .help-item .tag{flex-shrink:0; font-weight:700; color:var(--amber); min-width:60px;}
+
+  /* ====== Conexión · frescura de datos · pull-to-refresh ====== */
+  .updated.stale{color:var(--amber); font-weight:600;}
+  .offline-bar{
+    position:fixed; top:0; left:0; right:0; z-index:30;
+    background:#3a2417; color:var(--amber); border-bottom:1px solid rgba(232,163,61,0.4);
+    font-size:11px; text-align:center; padding:5px 10px; letter-spacing:0.02em;
+    transform:translateY(-100%); transition:transform .25s ease;
+  }
+  body.offline .offline-bar{transform:translateY(0);}
+  body.offline .screen{top:27px;}
+  .ptr{
+    position:fixed; top:0; left:50%; margin-left:-17px; z-index:25;
+    width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+    background:var(--navy-2); border:1px solid var(--line); border-radius:50%;
+    color:var(--amber); opacity:0; transform:translateY(-44px); pointer-events:none;
+    transition:transform .18s ease, opacity .18s ease;
+  }
+  .ptr svg{width:18px; height:18px;}
+  .ptr.spin svg{animation:ptr-spin .8s linear infinite;}
+  @keyframes ptr-spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion: reduce){ .ptr.spin svg{animation:none;} }
 </style>
 </head>
 <body>
 <div id="app">
+
+  <div class="offline-bar" id="offline-bar">Sin conexión · mostrando último dato guardado</div>
+  <div class="ptr" id="ptr"><svg viewBox="0 0 24 24" fill="none"><path d="M21 12a9 9 0 11-3-6.7M21 4v4h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
 
   <!-- PANTALLA 1: INICIO -->
   <div class="screen active" id="screen-home">
@@ -547,6 +572,97 @@ document.getElementById('app').addEventListener('touchstart', manejarTouchStart,
 document.getElementById('app').addEventListener('touchend', manejarTouchEnd, {passive: true});
 document.getElementById('app').addEventListener('touchcancel', manejarTouchCancel, {passive: true});
 
+// --- Estado de conexion ---
+function refrescarTodo(){
+  cargarDatos();
+  cargarClima();
+  cargarMarejadas();
+}
+function actualizarConexion(){
+  const offline = !navigator.onLine;
+  document.body.classList.toggle('offline', offline);
+}
+window.addEventListener('online', () => { actualizarConexion(); refrescarTodo(); });
+window.addEventListener('offline', actualizarConexion);
+actualizarConexion();
+
+// --- Deslizar para actualizar (pull-to-refresh) ---
+const PTR_UMBRAL = 70;
+let ptrStartX = null, ptrStartY = null, ptrEl = null, ptrActivo = false, ptrRefrescando = false;
+
+function scrollActivo(){
+  const s = document.querySelector('.screen.active');
+  if (!s) return null;
+  return s.querySelector('.content-scroll') || s;
+}
+function mostrarPtr(dist){
+  const el = document.getElementById('ptr');
+  el.style.opacity = String(Math.min(dist / PTR_UMBRAL, 1));
+  el.style.transform = `translateY(${Math.min(dist * 0.5, 52)}px) rotate(${dist * 2.4}deg)`;
+  el.classList.remove('spin');
+}
+function ocultarPtr(){
+  const el = document.getElementById('ptr');
+  el.classList.remove('spin');
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(-44px)';
+}
+async function dispararRefresco(){
+  if (ptrRefrescando) return;
+  ptrRefrescando = true;
+  const el = document.getElementById('ptr');
+  el.style.opacity = '1';
+  el.style.transform = 'translateY(48px)';
+  el.classList.add('spin');
+  const activa = (document.querySelector('.screen.active') || {}).id;
+  try {
+    if (activa === 'screen-clima') await cargarClima();
+    else if (activa === 'screen-marejadas') await cargarMarejadas();
+    else {
+      await cargarDatos();
+      if (currentDetailIdx !== null && VESSELS[currentDetailIdx] && activa === 'screen-detail') renderDetalle(currentDetailIdx);
+    }
+  } catch(e) {}
+  ptrRefrescando = false;
+  ocultarPtr();
+}
+
+function ptrStart(e){
+  const sc = scrollActivo();
+  if (sc && sc.scrollTop <= 0 && !ptrRefrescando){
+    ptrStartX = e.touches[0].clientX;
+    ptrStartY = e.touches[0].clientY;
+    ptrEl = sc;
+  } else {
+    ptrStartY = null;
+  }
+  ptrActivo = false;
+}
+function ptrMove(e){
+  if (ptrStartY === null || ptrRefrescando) return;
+  const dy = e.touches[0].clientY - ptrStartY;
+  const dx = e.touches[0].clientX - ptrStartX;
+  if (dy > 8 && dy > Math.abs(dx) && ptrEl && ptrEl.scrollTop <= 0){
+    ptrActivo = true;
+    e.preventDefault(); // requiere listener no-pasivo
+    mostrarPtr(dy);
+  } else if (dy < 0){
+    ptrActivo = false; ptrStartY = null; ocultarPtr();
+  }
+}
+function ptrEnd(e){
+  if (ptrActivo){
+    const dy = e.changedTouches[0].clientY - ptrStartY;
+    if (dy >= PTR_UMBRAL) dispararRefresco();
+    else ocultarPtr();
+  }
+  ptrStartY = null; ptrActivo = false;
+}
+document.getElementById('app').addEventListener('touchstart', ptrStart, {passive: true});
+document.getElementById('app').addEventListener('touchmove', ptrMove, {passive: false});
+document.getElementById('app').addEventListener('touchend', ptrEnd, {passive: true});
+document.getElementById('app').addEventListener('touchcancel', () => { ptrStartY = null; ptrActivo = false; ocultarPtr(); }, {passive: true});
+
 const ICONO_SOL = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.6"/><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"/><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"/><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"/></g></svg>';
 const ICONO_OLA = '<svg viewBox="0 0 24 24" fill="none"><path d="M2 14c1.6-1.6 3.2-1.6 4.8 0s3.2 1.6 4.8 0 3.2-1.6 4.8 0 3.2 1.6 4.8 0M2 18c1.6-1.6 3.2-1.6 4.8 0s3.2 1.6 4.8 0 3.2-1.6 4.8 0 3.2 1.6 4.8 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
 const ICONO_OJO = '<svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.6"/></svg>';
@@ -755,17 +871,30 @@ async function cargarMarejadas(){
   }
 }
 
-async function fetchSheet(sheetName){
+async function fetchSheetRaw(sheetName, reintento){
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
-  const res = await fetch(url);
-  const text = await res.text();
-  const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
-  const data = JSON.parse(jsonStr);
+  try {
+    const res = await fetch(url);
+    const text = await res.text();
+    const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+    return JSON.parse(jsonStr).table;
+  } catch(err) {
+    // gviz a veces devuelve una respuesta no-JSON cuando le llegan varias
+    // consultas a la vez (throttling). Reintentamos una vez tras una pausa.
+    if (!reintento){
+      await new Promise(r => setTimeout(r, 800));
+      return fetchSheetRaw(sheetName, true);
+    }
+    throw err;
+  }
+}
+
+async function fetchSheet(sheetName){
+  const table = await fetchSheetRaw(sheetName);
   // Devolvemos las celdas "crudas" (con v y f) en vez de aplanarlas,
   // porque Google Sheets puede guardar las fechas como texto o como tipo fecha real,
   // y necesitamos distinguirlos para no romper el parseo.
-  const rows = data.table.rows.map(r => r.c);
-  return rows;
+  return table.rows.map(r => r.c);
 }
 
 function celdaTexto(c){
@@ -830,12 +959,57 @@ function estadoTurnoLive(inicio, fin, ahora){
   return 'Cumplido';
 }
 
+// --- Frescura de datos ---
+// La celda K1 de "Hoja 1" guarda la hora real en que el script de Google
+// actualizo los datos por ultima vez. La comparamos con la hora actual para
+// avisar si la informacion quedo vieja (el script pudo fallar o Heyport cambiar).
+let ultimoTimestampDatos = null;
+const MIN_STALE = 20; // minutos: sobre esto avisamos que el dato esta viejo
+
+function parseTimestampSheet(str){
+  if (!str) return null;
+  const m = String(str).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5]);
+}
+
+function fmtAntiguedad(min){
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60), m = min % 60;
+  return m ? `${h} h ${m} min` : `${h} h`;
+}
+
+function renderFrescura(){
+  const el = document.getElementById('updated-text');
+  if (!el) return;
+  const pad = n => (n < 10 ? '0' : '') + n;
+  if (!ultimoTimestampDatos){
+    const now = new Date();
+    el.className = 'updated';
+    el.textContent = `Actualizado ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    return;
+  }
+  const hhmm = `${pad(ultimoTimestampDatos.getHours())}:${pad(ultimoTimestampDatos.getMinutes())}`;
+  const gap = Math.floor((Date.now() - ultimoTimestampDatos.getTime()) / 60000);
+  if (gap > MIN_STALE){
+    el.className = 'updated stale';
+    el.textContent = `⚠ Datos de ${hhmm} · sin actualizar hace ${fmtAntiguedad(gap)}`;
+  } else {
+    el.className = 'updated';
+    el.textContent = `Actualizado ${hhmm}`;
+  }
+}
+
 async function cargarDatos(){
   try {
-    const [hojaRows, turnosRows] = await Promise.all([
-      fetchSheet('Hoja 1'),
+    const [hojaTable, turnosRows] = await Promise.all([
+      fetchSheetRaw('Hoja 1'),
       fetchSheet('Turnos')
     ]);
+    const hojaRows = hojaTable.rows.map(r => r.c);
+    // El script escribe la hora de actualizacion en K1; gviz la entrega como
+    // etiqueta de la columna K (la fila 1 la toma como encabezado).
+    const tsStr = (hojaTable.cols[10] && hojaTable.cols[10].label) || null;
 
     VESSELS = hojaRows.filter(r => celdaTexto(r[0])).map(r => ({
       buque: celdaTexto(r[0]), sitio: (celdaTexto(r[1]) || '').replace(/Berth/i, 'Sitio'),
@@ -868,15 +1042,18 @@ async function cargarDatos(){
 
     renderList();
 
-    const now = new Date();
-    const pad = n => (n < 10 ? '0' : '') + n;
-    document.getElementById('updated-text').textContent =
-      `Actualizado ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    ultimoTimestampDatos = parseTimestampSheet(tsStr);
+    renderFrescura();
 
   } catch(err) {
-    document.getElementById('cards-container').innerHTML =
-      '<div class="empty-state">No se pudo cargar la información.<br>Revisa tu conexión e intenta de nuevo.</div>';
     console.error(err);
+    // Solo mostramos el error si aun no hay datos en pantalla. Si ya cargamos
+    // antes, mantenemos lo que hay (un fallo puntual de red no debe vaciar la
+    // lista); el proximo refresco o el "deslizar para actualizar" reintenta.
+    if (VESSELS.length === 0){
+      document.getElementById('cards-container').innerHTML =
+        '<div class="empty-state">No se pudo cargar la información.<br>Revisa tu conexión e intenta de nuevo.</div>';
+    }
   }
 }
 
@@ -1044,6 +1221,7 @@ setInterval(cargarMarejadas, 5 * 60 * 1000);
 // Cada 1 minuto, sin pedir datos nuevos, volvemos a dibujar usando la hora actual,
 // para que el cambio de turno se note al toque, sin esperar el proximo refresco de datos.
 setInterval(() => {
+  renderFrescura();
   if (VESSELS.length === 0) return;
   renderList();
   if (currentDetailIdx !== null && document.getElementById('screen-detail').classList.contains('active')) {
