@@ -143,24 +143,63 @@
   #screen-home ~ .tabbar, .screen.active#screen-home ~ .tabbar { display:none; }
   .content-scroll{flex:1; overflow-y:auto; padding:16px 14px 76px;}
 
-  .weather-card{
-    background:linear-gradient(160deg, var(--navy-2) 0%, var(--navy-3) 100%);
-    border:1px solid var(--line); border-radius:16px;
-    padding:20px; margin-bottom:16px;
+  /* ====== CLIMA (rediseño con datos en vivo) ====== */
+  .cl-live-row{display:flex; align-items:center; gap:6px; margin-top:6px;}
+  .cl-live-dot{width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 0 0 rgba(95,191,138,0.6); animation:cl-pulse 2s infinite;}
+  @keyframes cl-pulse{0%{box-shadow:0 0 0 0 rgba(95,191,138,0.55);}70%{box-shadow:0 0 0 7px rgba(95,191,138,0);}100%{box-shadow:0 0 0 0 rgba(95,191,138,0);}}
+  .cl-live-txt{font-size:10px; color:var(--slate);}
+  .cl-live-txt b{color:var(--green); font-weight:700; letter-spacing:0.04em;}
+  @media (prefers-reduced-motion: reduce){ .cl-live-dot{animation:none;} }
+
+  .cl-hero{
+    position:relative; overflow:hidden; margin-bottom:14px;
+    background:
+      radial-gradient(120% 80% at 85% -10%, rgba(232,163,61,0.16) 0%, rgba(232,163,61,0) 55%),
+      linear-gradient(158deg, var(--navy-2) 0%, var(--navy-3) 100%);
+    border:1px solid var(--line); border-radius:20px; padding:20px 20px 18px;
   }
-  .weather-top{display:flex; justify-content:space-between; align-items:center;}
-  .weather-icon{width:52px; height:52px; flex-shrink:0;}
-  .temp{font-size:44px; font-weight:700; line-height:1; letter-spacing:-0.02em;}
-  .temp span{font-size:20px; color:var(--slate); font-weight:400;}
-  .wcond{font-size:11px; color:var(--slate); margin-top:6px; text-transform:uppercase; letter-spacing:0.04em;}
-  .weather-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:20px;}
-  .wstat{background:rgba(232,236,239,0.04); border-radius:10px; padding:12px 8px; text-align:center;}
-  .wstat svg{width:20px; height:20px; margin-bottom:6px; color:var(--amber);}
-  .wstat .v{font-size:15px; font-weight:700;}
-  .wstat .v-sub{font-size:9.5px; color:var(--slate); margin-top:1px;}
-  .wstat .l{font-size:8.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.03em; margin-top:3px;}
-  .weather-detail{margin-top:16px; padding-top:14px; border-top:1px solid var(--line); font-size:11px; color:var(--slate); line-height:1.6;}
-  .weather-detail b{color:var(--fog); font-weight:600;}
+  .cl-hero-top{display:flex; justify-content:space-between; align-items:flex-start;}
+  .cl-temp{font-size:60px; font-weight:200; line-height:0.92; letter-spacing:-0.03em;}
+  .cl-temp sup{font-size:22px; font-weight:400; color:var(--slate); top:-1.4em; margin-left:2px;}
+  .cl-cond{font-size:13px; color:var(--fog); margin-top:8px; font-weight:600;}
+  .cl-feels{font-size:11px; color:var(--slate); margin-top:3px;}
+  .cl-sun{width:60px; height:60px; flex-shrink:0; color:var(--amber); filter:drop-shadow(0 0 14px rgba(232,163,61,0.35));}
+  .cl-hero-mm{display:flex; gap:16px; margin-top:16px; padding-top:14px; border-top:1px solid var(--line);}
+  .cl-mm{display:flex; align-items:baseline; gap:5px;}
+  .cl-mm .k{font-size:10px; color:var(--slate); text-transform:uppercase; letter-spacing:0.04em;}
+  .cl-mm .v{font-size:14px; font-weight:700;}
+  .cl-mm .v.max{color:var(--amber);}
+  .cl-mm .v.min{color:var(--steel);}
+
+  .cl-wind{
+    background:linear-gradient(158deg, var(--navy-2) 0%, var(--navy-3) 100%);
+    border:1px solid var(--line); border-radius:20px; padding:18px; margin-bottom:14px;
+    display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:center;
+  }
+  .cl-compass{width:112px; height:112px; flex-shrink:0;}
+  .cl-wind-data{min-width:0;}
+  .cl-wind-label{font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--steel); margin-bottom:7px;}
+  .cl-wind-main{display:flex; align-items:baseline; gap:6px;}
+  .cl-wind-nudos{font-size:34px; font-weight:700; line-height:1; letter-spacing:-0.02em;}
+  .cl-wind-unit{font-size:13px; color:var(--slate); font-weight:600;}
+  .cl-wind-kmh{font-size:12px; color:var(--slate); margin-top:5px;}
+  .cl-wind-sub{display:flex; gap:18px; margin-top:13px; padding-top:12px; border-top:1px solid var(--line);}
+  .cl-ws .k{font-size:8.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.04em;}
+  .cl-ws .v{font-size:13px; font-weight:700; margin-top:2px;}
+  .cl-ws .v small{font-size:9px; color:var(--slate); font-weight:400;}
+  .cl-ws .v.dir{color:var(--amber);}
+
+  .cl-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:14px;}
+  .cl-stat{background:rgba(232,236,239,0.035); border:1px solid var(--line); border-radius:14px; padding:13px 8px; text-align:center;}
+  .cl-stat svg{width:19px; height:19px; margin-bottom:7px; color:var(--amber);}
+  .cl-stat .v{font-size:14px; font-weight:700;}
+  .cl-stat .l{font-size:8.5px; color:var(--slate); text-transform:uppercase; letter-spacing:0.03em; margin-top:3px;}
+
+  .cl-sea{background:linear-gradient(158deg, var(--navy-2) 0%, var(--navy-3) 100%); border:1px solid var(--line); border-radius:16px; padding:14px 16px;}
+  .cl-sea-row{display:flex; justify-content:space-between; align-items:center; font-size:12px;}
+  .cl-sea-row + .cl-sea-row{margin-top:9px; padding-top:9px; border-top:1px solid var(--line);}
+  .cl-sea-row .k{color:var(--slate);}
+  .cl-sea-row .v{font-weight:600;}
 
   .alert-card{
     border-radius:16px; padding:18px; margin-bottom:12px; position:relative; overflow:hidden;
@@ -508,30 +547,67 @@ document.getElementById('app').addEventListener('touchstart', manejarTouchStart,
 document.getElementById('app').addEventListener('touchend', manejarTouchEnd, {passive: true});
 document.getElementById('app').addEventListener('touchcancel', manejarTouchCancel, {passive: true});
 
-function parsearViento(viento){
-  const m = (viento || '').match(/([A-Z\/]{1,6})\s+(\d+)\/(\d+)\s*KT/i);
-  if (!m) return { rango: viento || '—', rangoKm: '', direccion: '' };
-  const ktMin = parseInt(m[2], 10), ktMax = parseInt(m[3], 10);
-  const kmMin = Math.round(ktMin * 1.852), kmMax = Math.round(ktMax * 1.852);
-  return { rango: `${ktMin}-${ktMax} kt`, rangoKm: `${kmMin}-${kmMax} km/h`, direccion: m[1] };
-}
-
 const ICONO_SOL = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.6"/><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"/><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"/><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"/></g></svg>';
-const ICONO_VIENTO = '<svg viewBox="0 0 24 24" fill="none"><path d="M3 8h11a2.5 2.5 0 100-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3 12h15a2.5 2.5 0 110 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3 16h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
 const ICONO_OLA = '<svg viewBox="0 0 24 24" fill="none"><path d="M2 14c1.6-1.6 3.2-1.6 4.8 0s3.2 1.6 4.8 0 3.2-1.6 4.8 0 3.2 1.6 4.8 0M2 18c1.6-1.6 3.2-1.6 4.8 0s3.2 1.6 4.8 0 3.2-1.6 4.8 0 3.2 1.6 4.8 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
 const ICONO_OJO = '<svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.6"/></svg>';
 const ICONO_ALERTA = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3l10 18H2L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="12" y1="10" x2="12" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="17" r="0.9" fill="currentColor"/></svg>';
 const ICONO_CHECK = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M8 12.5l2.5 2.5L16 9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICONO_LUNA = '<svg viewBox="0 0 24 24" fill="none"><path d="M20 14.5A8 8 0 019.5 4 7 7 0 1020 14.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+const ICONO_NUBE = '<svg viewBox="0 0 24 24" fill="none"><path d="M7 18h10a4 4 0 000-8 5 5 0 00-9.6-1.3A3.5 3.5 0 007 18z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+const ICONO_NIEBLA = '<svg viewBox="0 0 24 24" fill="none"><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="3" y1="9" x2="21" y2="9"/><line x1="5" y1="13" x2="19" y2="13"/><line x1="3" y1="17" x2="15" y2="17"/></g></svg>';
+const ICONO_LLUVIA = '<svg viewBox="0 0 24 24" fill="none"><path d="M7 14h10a4 4 0 000-8 5 5 0 00-9.6-1.3A3.5 3.5 0 007 14z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="8" y1="18" x2="7" y2="21"/><line x1="12" y1="18" x2="11" y2="21"/><line x1="16" y1="18" x2="15" y2="21"/></g></svg>';
+const ICONO_GOTA = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 
 const LAT_MEJILLONES = -23.0995, LON_MEJILLONES = -70.4979;
 
-async function obtenerTemperaturaActual(){
+// Convierte grados (0-360, de donde VIENE el viento) a punto cardinal de 16 rumbos.
+function gradosACardinal(deg){
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+
+// Traduce el codigo meteorologico WMO de Open-Meteo a texto + icono.
+function climaDesdeCodigo(code, isDay){
+  const map = {
+    0:'Despejado', 1:'Mayormente despejado', 2:'Parcialmente nublado', 3:'Nublado',
+    45:'Neblina', 48:'Neblina', 51:'Llovizna ligera', 53:'Llovizna', 55:'Llovizna intensa',
+    56:'Llovizna helada', 57:'Llovizna helada', 61:'Lluvia ligera', 63:'Lluvia', 65:'Lluvia intensa',
+    66:'Lluvia helada', 67:'Lluvia helada', 71:'Nieve', 73:'Nieve', 75:'Nieve intensa',
+    77:'Aguanieve', 80:'Chubascos', 81:'Chubascos', 82:'Chubascos fuertes',
+    85:'Chubascos de nieve', 86:'Chubascos de nieve', 95:'Tormenta', 96:'Tormenta', 99:'Tormenta con granizo'
+  };
+  const texto = map[code] != null ? map[code] : 'Condiciones variables';
+  let icono;
+  if (code === 0 || code === 1) icono = isDay ? ICONO_SOL : ICONO_LUNA;
+  else if (code === 2 || code === 3) icono = ICONO_NUBE;
+  else if (code >= 45 && code <= 48) icono = ICONO_NIEBLA;
+  else if (code >= 51) icono = ICONO_LLUVIA;
+  else icono = ICONO_NUBE;
+  return { texto, icono };
+}
+
+// El boletin DIRECTEMAR llega como texto largo "DD MES YYYY A LAS HH:MM HORA LOCAL...".
+// Lo dejamos compacto: "19 Jul · 16:00".
+function compactarBoletin(str){
+  if (!str) return '—';
+  const meses = {ENERO:'Ene',FEBRERO:'Feb',MARZO:'Mar',ABRIL:'Abr',MAYO:'May',JUNIO:'Jun',JULIO:'Jul',AGOSTO:'Ago',SEPTIEMBRE:'Sep',OCTUBRE:'Oct',NOVIEMBRE:'Nov',DICIEMBRE:'Dic'};
+  const m = String(str).match(/(\d{1,2})\s+([A-ZÁÉÍÓÚ]+)\s+\d{4}\s+A LAS\s+(\d{1,2}:\d{2})/i);
+  if (!m) return String(str);
+  const mesCorto = meses[m[2].toUpperCase()] || m[2];
+  return `${m[1]} ${mesCorto} · ${m[3]}`;
+}
+
+async function obtenerClimaVivo(){
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT_MEJILLONES}&longitude=${LON_MEJILLONES}&current=temperature_2m&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT_MEJILLONES}&longitude=${LON_MEJILLONES}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
     const res = await fetch(url);
     const data = await res.json();
-    const t = data?.current?.temperature_2m;
-    return (t == null) ? null : Math.round(t);
+    if (!data || !data.current) return null;
+    // Adjuntamos el min/max del dia (primer elemento = hoy) al objeto current.
+    const d = data.daily;
+    data.current.temp_max_dia = (d && d.temperature_2m_max) ? Math.round(d.temperature_2m_max[0]) : null;
+    data.current.temp_min_dia = (d && d.temperature_2m_min) ? Math.round(d.temperature_2m_min[0]) : null;
+    return data.current;
   } catch(err) {
     return null;
   }
@@ -539,40 +615,109 @@ async function obtenerTemperaturaActual(){
 
 async function cargarClima(){
   try {
-    const rows = await fetchSheet('Clima');
+    const [rows, vivo] = await Promise.all([fetchSheet('Clima'), obtenerClimaVivo()]);
     const r = rows[0];
     const tempMin = celdaTexto(r[0]);
     const tempMax = celdaTexto(r[1]);
-    const viento = parsearViento(celdaTexto(r[2]));
     const visibilidad = celdaTexto(r[3]) || '—';
     const marDesc = celdaTexto(r[4]) || '';
     const olaMin = celdaTexto(r[5]);
     const olaMax = celdaTexto(r[6]);
-    const tempActual = await obtenerTemperaturaActual();
+    const boletin = compactarBoletin(celdaTexto(r[7]));
 
-    const tempTopHtml = (tempActual != null)
-      ? `<div class="temp">${tempActual}<span>°C</span></div><div class="wcond">Temperatura actual</div>`
-      : `<div class="temp">${tempMin}<span>–${tempMax}°C</span></div><div class="wcond">Rango del día</div>`;
-    const minMaxHtml = (tempActual != null)
-      ? `<br><b>Mín/Máx del día:</b> ${tempMin}–${tempMax}°C`
-      : '';
+    // --- Datos en vivo (Open-Meteo). Si falla, caemos a valores del boletin. ---
+    const hayVivo = !!vivo;
+    const tempActual = hayVivo ? Math.round(vivo.temperature_2m) : null;
+    // Min/max del dia: preferimos Open-Meteo (coherente con la temp actual); si no, el boletin.
+    const maxDia = (hayVivo && vivo.temp_max_dia != null) ? vivo.temp_max_dia : tempMax;
+    const minDia = (hayVivo && vivo.temp_min_dia != null) ? vivo.temp_min_dia : tempMin;
+    const sensacion = hayVivo && vivo.apparent_temperature != null ? Math.round(vivo.apparent_temperature) : null;
+    const humedad = hayVivo && vivo.relative_humidity_2m != null ? Math.round(vivo.relative_humidity_2m) : null;
+    const cond = hayVivo ? climaDesdeCodigo(vivo.weather_code, vivo.is_day === 1)
+                         : { texto: 'Condiciones actuales', icono: ICONO_SOL };
+
+    const kmh = hayVivo && vivo.wind_speed_10m != null ? vivo.wind_speed_10m : null;
+    const nudos = kmh != null ? (kmh / 1.852) : null;
+    const rafagaKmh = hayVivo && vivo.wind_gusts_10m != null ? vivo.wind_gusts_10m : null;
+    const rafagaNudos = rafagaKmh != null ? (rafagaKmh / 1.852) : null;
+    const dirDeg = hayVivo && vivo.wind_direction_10m != null ? Math.round(vivo.wind_direction_10m) : null;
+    const dirCard = dirDeg != null ? gradosACardinal(dirDeg) : '—';
+
+    const un = n => (n == null ? '—' : n.toFixed(1));
+
+    // Hora del dato en vivo (ISO "2026-07-20T16:45" -> "16:45")
+    let horaVivo = '';
+    if (hayVivo && vivo.time && vivo.time.indexOf('T') !== -1) horaVivo = vivo.time.split('T')[1].slice(0, 5);
+
+    const tempHeroHtml = (tempActual != null)
+      ? `<div class="cl-temp">${tempActual}<sup>°C</sup></div>
+         <div class="cl-cond">${cond.texto}</div>
+         ${sensacion != null ? `<div class="cl-feels">Sensación térmica ${sensacion}°</div>` : ''}`
+      : `<div class="cl-temp">${minDia}<sup>–${maxDia}°</sup></div>
+         <div class="cl-cond">Rango del día</div>`;
+
+    const humedadMM = humedad != null ? `<div class="cl-mm" style="margin-left:auto;"><span class="k">Humedad</span><span class="v">${humedad}%</span></div>` : '';
+
+    // Brújula: la aguja ámbar apunta de DÓNDE viene el viento.
+    const compassHtml = `
+      <svg class="cl-compass" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="54" fill="rgba(232,236,239,0.02)" stroke="rgba(232,236,239,0.1)" stroke-width="1"/>
+        <circle cx="60" cy="60" r="44" fill="none" stroke="rgba(232,236,239,0.06)" stroke-width="1"/>
+        <g stroke="rgba(232,236,239,0.18)" stroke-width="1.4">
+          <line x1="60" y1="8" x2="60" y2="15"/><line x1="112" y1="60" x2="105" y2="60"/>
+          <line x1="60" y1="112" x2="60" y2="105"/><line x1="8" y1="60" x2="15" y2="60"/>
+        </g>
+        <text x="60" y="24" text-anchor="middle" font-size="11" font-weight="700" fill="#7A8B99" font-family="Segoe UI,Arial">N</text>
+        <text x="99" y="64" text-anchor="middle" font-size="10" fill="#7A8B99" font-family="Segoe UI,Arial">E</text>
+        <text x="60" y="102" text-anchor="middle" font-size="10" fill="#7A8B99" font-family="Segoe UI,Arial">S</text>
+        <text x="21" y="64" text-anchor="middle" font-size="10" fill="#7A8B99" font-family="Segoe UI,Arial">O</text>
+        ${dirDeg != null ? `<g transform="rotate(${dirDeg} 60 60)">
+          <path d="M60 20 L54 62 L60 56 L66 62 Z" fill="#E8A33D"/>
+          <path d="M60 100 L54 58 L60 64 L66 58 Z" fill="rgba(232,236,239,0.22)"/>
+        </g>` : ''}
+        <circle cx="60" cy="60" r="4" fill="var(--navy)" stroke="#E8A33D" stroke-width="1.6"/>
+      </svg>`;
+
+    const vientoHtml = hayVivo ? `
+      <div class="cl-wind">
+        ${compassHtml}
+        <div class="cl-wind-data">
+          <div class="cl-wind-label">Viento en vivo</div>
+          <div class="cl-wind-main"><span class="cl-wind-nudos">${un(nudos)}</span><span class="cl-wind-unit">nudos</span></div>
+          <div class="cl-wind-kmh">${kmh != null ? kmh.toFixed(1) + ' km/h' : ''}</div>
+          <div class="cl-wind-sub">
+            <div class="cl-ws"><div class="k">Dirección</div><div class="v dir">${dirCard} <small>${dirDeg != null ? dirDeg + '°' : ''}</small></div></div>
+            <div class="cl-ws"><div class="k">Ráfagas</div><div class="v">${un(rafagaNudos)} <small>nudos</small></div></div>
+          </div>
+        </div>
+      </div>` : '';
 
     document.getElementById('clima-container').innerHTML = `
-      <div class="weather-card">
-        <div class="weather-top">
-          <div>
-            ${tempTopHtml}
-          </div>
-          <div class="weather-icon" style="color:var(--amber)">${ICONO_SOL}</div>
+      <div class="cl-hero">
+        <div class="cl-hero-top">
+          <div>${tempHeroHtml}</div>
+          <div class="cl-sun">${cond.icono}</div>
         </div>
-        <div class="weather-grid">
-          <div class="wstat">${ICONO_VIENTO}<div class="v">${viento.rango}</div><div class="v-sub">${viento.rangoKm}</div><div class="l">Viento ${viento.direccion}</div></div>
-          <div class="wstat">${ICONO_OLA}<div class="v">${olaMin}–${olaMax} m</div><div class="l">Oleaje</div></div>
-          <div class="wstat">${ICONO_OJO}<div class="v">${visibilidad}</div><div class="l">Visibilidad</div></div>
+        <div class="cl-hero-mm">
+          <div class="cl-mm"><span class="k">Máx</span><span class="v max">${maxDia}°</span></div>
+          <div class="cl-mm"><span class="k">Mín</span><span class="v min">${minDia}°</span></div>
+          ${humedadMM}
         </div>
-        <div class="weather-detail"><b>Estado del mar:</b> ${marDesc.toLowerCase()}${minMaxHtml}</div>
+      </div>
+      ${vientoHtml}
+      <div class="cl-grid">
+        <div class="cl-stat">${ICONO_OJO}<div class="v">${visibilidad}</div><div class="l">Visibilidad</div></div>
+        <div class="cl-stat">${ICONO_OLA}<div class="v">${olaMin}–${olaMax} m</div><div class="l">Oleaje</div></div>
+        <div class="cl-stat">${ICONO_GOTA}<div class="v">${humedad != null ? humedad + '%' : '—'}</div><div class="l">Humedad</div></div>
+      </div>
+      <div class="cl-sea">
+        <div class="cl-sea-row"><span class="k">Estado del mar</span><span class="v">${marDesc ? marDesc.charAt(0).toUpperCase() + marDesc.slice(1).toLowerCase() : '—'}</span></div>
+        <div class="cl-sea-row"><span class="k">Boletín DIRECTEMAR</span><span class="v">${boletin}</span></div>
       </div>`;
-    document.getElementById('clima-updated').textContent = 'Boletín oficial · ' + (celdaTexto(r[7]) || '—');
+
+    document.getElementById('clima-updated').innerHTML = hayVivo
+      ? `<span class="cl-live-row"><span class="cl-live-dot"></span><span class="cl-live-txt"><b>EN VIVO</b> · actualizado ${horaVivo}</span></span>`
+      : 'Boletín oficial · ' + boletin;
   } catch(err) {
     document.getElementById('clima-container').innerHTML = '<div class="empty-state">No se pudo cargar el clima.</div>';
   }
