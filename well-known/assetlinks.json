@@ -1,8 +1,11 @@
 [{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "cl.mejillones.atraque",
-        "sha256_cert_fingerprints": ["9D:C0:91:AB:20:8D:17:EB:69:8D:5A:B3:B2:8A:23:CA:04:FC:2D:B7:65:C7:85:6C:6E:B9:4B:69:61:2C:B5:6D"]
-      }
-    }]
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "cl.mejillones.atraque",
+    "sha256_cert_fingerprints": [
+      "F9:66:37:71:9D:53:80:CF:AA:ED:F3:43:D9:E7:61:42:D2:BE:D8:D4:E0:BA:05:2F:DB:A4:A9:9A:68:29:50:9C",
+      "9D:C0:91:AB:20:8D:17:EB:69:8D:5A:B3:B2:8A:23:CA:04:FC:2D:B7:65:C7:85:6C:6E:B9:4B:69:61:2C:B5:6D"
+    ]
+  }
+}]
