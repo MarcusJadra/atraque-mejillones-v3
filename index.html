@@ -1012,7 +1012,10 @@ async function cargarDatos(){
     // etiqueta de la columna K (la fila 1 la toma como encabezado).
     const tsStr = (hojaTable.cols[10] && hojaTable.cols[10].label) || null;
 
-    VESSELS = hojaRows.filter(r => celdaTexto(r[0])).map(r => ({
+    // Heyport a veces publica un registro extra del mismo buque sin sitio asignado
+    // (su propio planificador tampoco lo dibuja, porque no se puede ubicar en la grilla).
+    // Si no ocupa un sitio, no corresponde mostrarlo en la lista.
+    VESSELS = hojaRows.filter(r => celdaTexto(r[0]) && celdaTexto(r[1])).map(r => ({
       buque: celdaTexto(r[0]), sitio: (celdaTexto(r[1]) || '').replace(/Berth/i, 'Sitio'),
       atraque: celdaFecha(r[2]), zarpe: celdaFecha(r[3]),
       estadoSheet: celdaTexto(r[4]), agencia: celdaTexto(r[5]), tipoCarga: celdaTexto(r[6]),
